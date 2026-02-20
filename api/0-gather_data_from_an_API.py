@@ -7,21 +7,29 @@ import sys
 
 
 if __name__ == "__main__":
-    """ main section """
-    BASE_URL = 'https://jsonplaceholder.typicode.com'
-    employee = requests.get(
-        BASE_URL + f'/users/{sys.argv[1]}/').json()
-    EMPLOYEE_NAME = employee.get("name")
-    employee_todos = requests.get(
-        BASE_URL + f'/users/{sys.argv[1]}/todos').json()
-    serialized_todos = {}
+    if len(sys.argv) != 2:
+        sys.exit(1)
 
-    for todo in employee_todos:
-        serialized_todos.update({todo.get("title"): todo.get("completed")})
+    emp_id = sys.argv[1]
+    base_url = "https://jsonplaceholder.typicode.com"
 
-    COMPLETED_LEN = len([k for k, v in serialized_todos.items() if v is True])
+    # Get employee data
+    employee = requests.get(f"{base_url}/users/{emp_id}").json()
+    employee_name = employee.get("name")
+
+    # Get todos
+    todos = requests.get(f"{base_url}/todos?userId={emp_id}").json()
+
+    total_tasks = len(todos)
+    done_tasks = [task for task in todos if task.get("completed")]
+
+    # First line
     print("Employee {} is done with tasks({}/{}):".format(
-        EMPLOYEE_NAME, COMPLETED_LEN, len(serialized_todos)))
-    for key, val in serialized_todos.items():
-        if val is True:
-            print("\t {}".format(key))
+        employee_name,
+        len(done_tasks),
+        total_tasks
+    ))
+
+    # Completed tasks
+    for task in done_tasks:
+        print("\t {}".format(task.get("title")))
